@@ -1,0 +1,18 @@
+[package]
+name = "chopsticks"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wayland-client = "0.31"
+wayland-protocols-wlr = { version = "0.3", features = ["client"] }
+smithay-client-toolkit = { version = "0.20", features = ["calloop"] }
+calloop = "0.14"
+calloop-wayland-source = "0.4"
+memmap2 = "0.9"
+swash = "0.2"
+anyhow = "1"
+toml = "1.1.2"
+serde = { version = "1", features = ["derive"] }
+dirs = "6.0"
+fs4 = "1.1.0"
