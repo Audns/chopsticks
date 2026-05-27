@@ -437,7 +437,7 @@ fn main() {
                 let sx = (x as f64 * scale) as u32;
                 let sy = (y as f64 * scale) as u32;
                 emit_click(
-                    vp, &conn, sx, sy, state.width, state.height, out_w, out_h
+                    vp, &conn, sx, sy, out_w, out_h
                 );
                 
                 for _ in 0..5 {
