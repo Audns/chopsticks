@@ -11,6 +11,10 @@ pub fn precision_key_to_subcell(ch: char) -> Option<(u32, u32)> {
         'j' => Some((1, 1)),
         'k' => Some((2, 1)),
         'l' => Some((3, 1)),
+        'n' => Some((0, 2)),
+        'm' => Some((1, 2)),
+        ',' => Some((2, 2)),
+        '.' => Some((3, 2)),
         _ => None,
     }
 }
@@ -23,7 +27,7 @@ pub fn keycode_to_char(keycode: u32) -> Option<char> {
         50 => Some('m'), 49 => Some('n'), 24 => Some('o'), 25 => Some('p'),
         16 => Some('q'), 19 => Some('r'), 31 => Some('s'), 20 => Some('t'),
         22 => Some('u'), 47 => Some('v'), 17 => Some('w'), 45 => Some('x'),
-        21 => Some('y'), 44 => Some('z'), 57 => Some(' '), _ => None,
+        21 => Some('y'), 44 => Some('z'), 57 => Some(' '), 51 => Some(','), 52 => Some('.'), _ => None,
     }
 }
 
@@ -50,7 +54,7 @@ pub fn compute_precision_coordinate(
     let cell_h = cell_y2 - cell_y1;
 
     let sub_w = cell_w / 4;
-    let sub_h = cell_h / 2;
+    let sub_h = cell_h / 3;
 
     let x = cell_x1 + precision_col * sub_w + sub_w / 2;
     let y = cell_y1 + precision_row * sub_h + sub_h / 2;

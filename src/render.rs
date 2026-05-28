@@ -101,8 +101,8 @@ struct CachedGlyph {
 }
 
 pub struct FontCache {
-    advances: [f32; 26],
-    glyphs: Vec<CachedGlyph>,
+    advances: std::collections::HashMap<char, f32>,
+    glyphs: std::collections::HashMap<char, CachedGlyph>,
 }
 
 impl FontCache {
@@ -121,19 +121,20 @@ impl FontCache {
         let scale = font_size as f32 / units_per_em;
         let glyph_metrics = font.glyph_metrics(&[]);
         
-        let mut advances = [0f32; 26];
-        let mut glyphs = Vec::with_capacity(26);
+        let mut advances = std::collections::HashMap::new();
+        let mut glyphs = std::collections::HashMap::new();
         
-        for i in 0..26 {
-            let ch = (b'a' + i) as char;
+        let chars_to_cache: Vec<char> = ('a'..='z').chain([',', '.', ' ']).collect();
+        
+        for ch in chars_to_cache {
             let id = font.charmap().map(ch);
-            advances[i as usize] = glyph_metrics.advance_width(id) * scale;
+            advances.insert(ch, glyph_metrics.advance_width(id) * scale);
             
             let mut render = Render::new(&[Source::Outline]);
             let render = render.format(swash::zeno::Format::Alpha);
             
             if let Some(image) = render.render(&mut scaler, id) {
-                glyphs.push(CachedGlyph {
+                glyphs.insert(ch, CachedGlyph {
                     width: image.placement.width,
                     height: image.placement.height,
                     left: image.placement.left,
@@ -141,7 +142,7 @@ impl FontCache {
                     data: image.data,
                 });
             } else {
-                glyphs.push(CachedGlyph {
+                glyphs.insert(ch, CachedGlyph {
                     width: 0,
                     height: 0,
                     left: 0,
@@ -156,7 +157,7 @@ impl FontCache {
 }
 
 fn draw_text_label(buffer: &mut PixelBuffer, text: &str, cx: u32, cy: u32, cache: &FontCache, text_color: u32) {
-    let idxs: Vec<usize> = text.bytes().map(|b| (b - b'a') as usize).collect();
+    let chars: Vec<char> = text.chars().collect();
     
     let mut min_x = i32::MAX;
     let mut max_x = i32::MIN;
@@ -164,29 +165,33 @@ fn draw_text_label(buffer: &mut PixelBuffer, text: &str, cx: u32, cy: u32, cache
     let mut max_y = i32::MIN;
     
     let mut x_offset = 0f32;
-    for &idx in &idxs {
-        let glyph = &cache.glyphs[idx];
+    for &ch in &chars {
+        let glyph = cache.glyphs.get(&ch).unwrap_or_else(|| cache.glyphs.get(&' ').unwrap());
+        let advance = cache.advances.get(&ch).copied().unwrap_or(0.0);
         let gx = x_offset as i32 + glyph.left;
         let gy = -glyph.top;
         min_x = min_x.min(gx);
         max_x = max_x.max(gx + glyph.width as i32);
         min_y = min_y.min(gy);
         max_y = max_y.max(gy + glyph.height as i32);
-        x_offset += cache.advances[idx];
+        x_offset += advance;
     }
     
     let text_width = (max_x - min_x) as f32;
     let text_height = (max_y - min_y) as f32;
+    // Snap to integer pixel boundaries for crisp rendering
     let start_x = (cx as f32 - text_width / 2.0).round() as i32 - min_x;
     let start_y = (cy as f32 - text_height / 2.0).round() as i32 - min_y;
     
+    // Extract text RGB
     let fg_r = ((text_color >> 16) & 0xFF) as u16;
     let fg_g = ((text_color >> 8) & 0xFF) as u16;
     let fg_b = (text_color & 0xFF) as u16;
     
     let mut x_offset = 0f32;
-    for &idx in &idxs {
-        let glyph = &cache.glyphs[idx];
+    for &ch in &chars {
+        let glyph = cache.glyphs.get(&ch).unwrap_or_else(|| cache.glyphs.get(&' ').unwrap());
+        let advance = cache.advances.get(&ch).copied().unwrap_or(0.0);
         let glyph_x = start_x + x_offset as i32 + glyph.left;
         let glyph_y = start_y - glyph.top;
         
@@ -209,6 +214,7 @@ fn draw_text_label(buffer: &mut PixelBuffer, text: &str, cx: u32, cy: u32, cache
             let bx = buf_x as u32;
             let by = buf_y as u32;
             
+            // Alpha blend with background
             let alpha = pixel as u16;
             let inv_alpha = 255 - alpha;
             
@@ -224,11 +230,11 @@ fn draw_text_label(buffer: &mut PixelBuffer, text: &str, cx: u32, cy: u32, cache
             
             buffer.set_pixel(bx, by, color);
         }
-        x_offset += cache.advances[idx];
+        x_offset += advance;
     }
 }
 
-const PRECISION_KEYS: [char; 8] = ['y', 'u', 'i', 'o', 'h', 'j', 'k', 'l'];
+const PRECISION_KEYS: [char; 12] = ['y', 'u', 'i', 'o', 'h', 'j', 'k', 'l', 'n', 'm', ',', '.'];
 
 pub fn draw_labels(buffer: &mut PixelBuffer, width: u32, height: u32, font_size: u32, text_color: u32, selected_row: Option<u32>, selected_cell: Option<(u32, u32)>) {
     let font_path = "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Bold.ttf";
@@ -241,7 +247,7 @@ pub fn draw_labels(buffer: &mut PixelBuffer, width: u32, height: u32, font_size:
         let cell_w = cell_x2 - cell_x1;
         let cell_h = cell_y2 - cell_y1;
         let sub_w = cell_w / 4;
-        let sub_h = cell_h / 2;
+        let sub_h = cell_h / 3;
         
         for (idx, &ch) in PRECISION_KEYS.iter().enumerate() {
             let sub_col = (idx % 4) as u32;
@@ -290,7 +296,7 @@ pub fn draw_precision_grid(
     let cell_w = cell_x2 - cell_x1;
     let cell_h = cell_y2 - cell_y1;
     let sub_w = cell_w / 4;
-    let sub_h = cell_h / 2;
+    let sub_h = cell_h / 3;
     
     for i in 1..4 {
         let x = cell_x1 + i * sub_w;
@@ -299,9 +305,11 @@ pub fn draw_precision_grid(
         }
     }
     
-    let mid_y = cell_y1 + sub_h;
-    for x in cell_x1..=cell_x2 {
-        buffer.set_pixel(x, mid_y, grid_color);
+    for i in 1..3 {
+        let y = cell_y1 + i * sub_h;
+        for x in cell_x1..=cell_x2 {
+            buffer.set_pixel(x, y, grid_color);
+        }
     }
     
     // Draw a small dot at the center of the cell to indicate space key target

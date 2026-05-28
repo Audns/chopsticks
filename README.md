@@ -16,8 +16,8 @@ The screen is divided into a **26×26 grid** labeled with letters `a` through `z
 |-------|------|-------------|
 | **1** | Press `a-z` | Selects a **row**. The full grid dims; only that row shows column labels `a-z`. |
 | **2** | Press `a-z` | Selects a **cell** within the row. The cell zooms into an 8-subcell precision grid. |
-| **3** | Press `y,u,i,o,h,j,k,l` | Selects a **sub-cell**. The overlay closes and a left-click is emitted at that exact spot. |
-|       | Press `Space`           | Clicks the **center** of the selected cell directly, skipping the 8-subcell grid. |
+| **3** | Press `y,u,i,o,h,j,k,l,n,m,,,.` | Selects a **sub-cell**. The overlay closes and a left-click is emitted at that exact spot. |
+|       | Press `Space`                    | Clicks the **center** of the selected cell directly, skipping the 12-subcell grid. |
 
 **Escape** exits at any time. Invalid keys reset to stage 1.
 
@@ -26,6 +26,7 @@ The screen is divided into a **26×26 grid** labeled with letters `a` through `z
 ```text
 y  u  i  o
 h  j  k  l
+n  m  ,  .
     ·        ← Space = center of cell
 ```
 

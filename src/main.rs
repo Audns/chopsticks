@@ -193,7 +193,7 @@ impl Dispatch<wl_keyboard::WlKeyboard, ()> for AppState {
                                 state.input_state = InputState::Done;
                                 state.pending_click = Some((x, y));
                             } else {
-                                println!("Invalid precision key: {}. Use y,u,i,o,h,j,k,l or space", ch);
+                                println!("Invalid precision key: {}. Use y,u,i,o,h,j,k,l,n,m,,,. or space", ch);
                             }
                         }
                         InputState::Done => {
