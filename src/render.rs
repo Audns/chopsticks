@@ -349,7 +349,8 @@ pub fn render_frame(
         buffer.fill_rect(x1, y1, x2 - x1, y2 - y1, cell_bg);
         draw_precision_grid(buffer, width, height, row, col, grid_color);
         
-        let font_size = ((height / GRID_SIZE).min(width / GRID_SIZE)) / config.font_size_divisor;
+        let cell_font_size = ((height / GRID_SIZE).min(width / GRID_SIZE)) / config.font_size_divisor;
+        let font_size = cell_font_size * 2 / 3;
         draw_labels(buffer, width, height, font_size, text_color, None, selected_cell);
         return;
     }
