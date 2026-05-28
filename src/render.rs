@@ -303,6 +303,18 @@ pub fn draw_precision_grid(
     for x in cell_x1..=cell_x2 {
         buffer.set_pixel(x, mid_y, grid_color);
     }
+    
+    // Draw a small dot at the center of the cell to indicate space key target
+    let center_x = cell_x1 + cell_w / 2;
+    let center_y = cell_y1 + cell_h / 2;
+    let dot_color = grid_color;
+    for dy in -1..=1_i32 {
+        for dx in -1..=1_i32 {
+            let px = (center_x as i32 + dx) as u32;
+            let py = (center_y as i32 + dy) as u32;
+            buffer.set_pixel(px, py, dot_color);
+        }
+    }
 }
 
 pub fn render_frame(

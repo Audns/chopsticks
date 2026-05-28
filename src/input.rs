@@ -23,7 +23,7 @@ pub fn keycode_to_char(keycode: u32) -> Option<char> {
         50 => Some('m'), 49 => Some('n'), 24 => Some('o'), 25 => Some('p'),
         16 => Some('q'), 19 => Some('r'), 31 => Some('s'), 20 => Some('t'),
         22 => Some('u'), 47 => Some('v'), 17 => Some('w'), 45 => Some('x'),
-        21 => Some('y'), 44 => Some('z'), _ => None,
+        21 => Some('y'), 44 => Some('z'), 57 => Some(' '), _ => None,
     }
 }
 

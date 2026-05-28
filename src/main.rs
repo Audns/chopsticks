@@ -16,7 +16,7 @@ mod pointer;
 mod render;
 
 use config::{ConfigFile, load_config};
-use input::{InputState, keycode_to_char, precision_key_to_subcell, compute_precision_coordinate, ESCAPE_KEYCODE};
+use input::{InputState, keycode_to_char, precision_key_to_subcell, compute_precision_coordinate, compute_cell_bounds, ESCAPE_KEYCODE};
 use pointer::emit_click;
 use render::{PixelBuffer, render_frame};
 
@@ -119,6 +119,9 @@ impl Dispatch<wl_keyboard::WlKeyboard, ()> for AppState {
             if let Some(ch) = keycode_to_char(key) {
                 match state.input_state {
                     InputState::Idle => {
+                        if ch == ' ' {
+                            return;
+                        }
                         println!("First key: {}", ch);
                         state.input_state = InputState::WaitingSecond { first: ch };
                         
@@ -137,6 +140,9 @@ impl Dispatch<wl_keyboard::WlKeyboard, ()> for AppState {
                         }
                     }
                     InputState::WaitingSecond { first } => {
+                        if ch == ' ' {
+                            return;
+                        }
                         println!("Second key: {}", ch);
                         let row = (first as u32) - ('a' as u32);
                         let col = (ch as u32) - ('a' as u32);
@@ -156,7 +162,17 @@ impl Dispatch<wl_keyboard::WlKeyboard, ()> for AppState {
                         }
                     }
                     InputState::WaitingThird { first, second } => {
-                        if let Some((sub_col, sub_row)) = precision_key_to_subcell(ch) {
+                        if ch == ' ' {
+                            let col = (second as u32) - ('a' as u32);
+                            let row = (first as u32) - ('a' as u32);
+                            let (x1, y1, x2, y2) = compute_cell_bounds(col, row, state.width, state.height);
+                            let x = x1 + (x2 - x1) / 2;
+                            let y = y1 + (y2 - y1) / 2;
+                            println!("Space pressed: clicking center of cell ({}, {})", first, second);
+                            println!("Target coordinate: ({}, {})", x, y);
+                            state.input_state = InputState::Done;
+                            state.pending_click = Some((x, y));
+                        } else if let Some((sub_col, sub_row)) = precision_key_to_subcell(ch) {
                             let (x, y) = compute_precision_coordinate(
                                 first, second, sub_col, sub_row, state.width, state.height
                             );
@@ -165,7 +181,7 @@ impl Dispatch<wl_keyboard::WlKeyboard, ()> for AppState {
                             state.input_state = InputState::Done;
                             state.pending_click = Some((x, y));
                         } else {
-                            println!("Invalid precision key: {}. Use y,u,i,o,h,j,k,l", ch);
+                            println!("Invalid precision key: {}. Use y,u,i,o,h,j,k,l or space", ch);
                         }
                     }
                     InputState::Done => {
