@@ -178,10 +178,12 @@ fn draw_text_label(buffer: &mut PixelBuffer, text: &str, cx: u32, cy: u32, cache
     }
     
     let text_width = (max_x - min_x) as f32;
-    let text_height = (max_y - min_y) as f32;
+    // Use only the portion above the baseline for vertical centering,
+    // so descenders (e.g., 'y', 'g') don't push the main body upward.
+    let visual_height = (0 - min_y) as f32;
     // Snap to integer pixel boundaries for crisp rendering
     let start_x = (cx as f32 - text_width / 2.0).round() as i32 - min_x;
-    let start_y = (cy as f32 - text_height / 2.0).round() as i32 - min_y;
+    let start_y = (cy as f32 - visual_height / 2.0).round() as i32 - min_y;
     
     // Extract text RGB
     let fg_r = ((text_color >> 16) & 0xFF) as u16;
