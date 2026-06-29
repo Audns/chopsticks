@@ -24,21 +24,39 @@ pub struct ConfigFile {
 
 impl ConfigFile {
     pub fn logical_width(&self) -> Option<u32> {
-        self.window_width.map(|w| (w as f64 / self.scale_ratio) as u32)
+        self.window_width
+            .map(|w| (f64::from(w) / self.scale_ratio) as u32)
     }
     pub fn logical_height(&self) -> Option<u32> {
-        self.window_height.map(|h| (h as f64 / self.scale_ratio) as u32)
+        self.window_height
+            .map(|h| (f64::from(h) / self.scale_ratio) as u32)
     }
 }
 
-fn default_idle_bg_opacity() -> u8 { 0 }
-fn default_row_bg_opacity() -> u8 { 0 }
-fn default_cell_bg_opacity() -> u8 { 0 }
-fn default_font_size_divisor() -> u32 { 2 }
-fn default_grid_color() -> String { "888888".to_string() }
-fn default_text_color() -> String { "FFFFFF".to_string() }
-fn default_grid_opacity() -> u8 { 255 }
-fn default_scale_ratio() -> f64 { 1.0 }
+fn default_idle_bg_opacity() -> u8 {
+    0
+}
+fn default_row_bg_opacity() -> u8 {
+    0
+}
+fn default_cell_bg_opacity() -> u8 {
+    0
+}
+fn default_font_size_divisor() -> u32 {
+    2
+}
+fn default_grid_color() -> String {
+    "888888".to_string()
+}
+fn default_text_color() -> String {
+    "FFFFFF".to_string()
+}
+fn default_grid_opacity() -> u8 {
+    255
+}
+fn default_scale_ratio() -> f64 {
+    1.0
+}
 
 impl Default for ConfigFile {
     fn default() -> Self {
@@ -62,18 +80,19 @@ pub fn parse_hex_color(hex: &str) -> u32 {
     let r = u8::from_str_radix(&hex[0..2], 16).unwrap_or(0);
     let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(0);
     let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0);
-    ((r as u32) << 16) | ((g as u32) << 8) | (b as u32)
+    (u32::from(r) << 16) | (u32::from(g) << 8) | u32::from(b)
 }
 
 pub fn load_config() -> ConfigFile {
     let config_path = dirs::config_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("~/.config"))
         .join("chopsticks/config.toml");
-    
+
     if let Ok(content) = std::fs::read_to_string(&config_path)
-        && let Ok(config) = toml::from_str(&content) {
-            return config;
-        }
-    
+        && let Ok(config) = toml::from_str(&content)
+    {
+        return config;
+    }
+
     ConfigFile::default()
 }

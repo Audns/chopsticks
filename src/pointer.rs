@@ -17,24 +17,24 @@ pub fn emit_click(
         .unwrap()
         .as_millis() as u32;
 
-    println!("Emitting click at ({}, {}) [window: {}x{}]", x, y, window_width, window_height);
+    println!("Emitting click at ({x}, {y}) [window: {window_width}x{window_height}]");
 
     virtual_pointer.motion_absolute(time, x, y, window_width, window_height);
     virtual_pointer.frame();
     conn.flush().expect("Failed to flush motion");
-    
+
     std::thread::sleep(std::time::Duration::from_millis(50));
-    
+
     virtual_pointer.button(time, BTN_LEFT, wl_pointer::ButtonState::Pressed);
     virtual_pointer.frame();
     conn.flush().expect("Failed to flush press");
-    
+
     std::thread::sleep(std::time::Duration::from_millis(50));
-    
+
     virtual_pointer.button(time, BTN_LEFT, wl_pointer::ButtonState::Released);
     virtual_pointer.frame();
     conn.flush().expect("Failed to flush release");
-    
+
     std::thread::sleep(std::time::Duration::from_millis(100));
     println!("Click complete");
 }
